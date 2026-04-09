@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-venv/
+venv312/
 env/
 *.egg-info/
 
