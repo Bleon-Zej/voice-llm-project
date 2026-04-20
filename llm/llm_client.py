@@ -1,14 +1,13 @@
-import subprocess
 import ollama
 from utils.config import MODEL_NAME
 
 
 class LLMClient:
 
-    def __init__(self, model_name=MODEL_NAME):
-        self.model_name = model_name
+    def __init__(self, model_name: str = MODEL_NAME) -> None:
+        self.model_name: str = model_name
 
-    def ask_stream(self, prompt: str):
+    def ask(self, prompt: str) -> str:
         stream = ollama.chat(
             model=self.model_name,
             messages=[{"role": "user", "content": prompt}],

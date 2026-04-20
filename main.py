@@ -1,45 +1,40 @@
 from llm.llm_client import LLMClient
 from audio.recorder import Recorder
 from speech.speech_to_text import STT
-from audio.vad import VAD
+from utils.config import SILENCE_THRESHOLD_TIME, MIN_AUDIO_TIME, ENERGY_THRESHOLD
 import numpy as np
 
 llm = LLMClient()
 stt = STT()
 recorder = Recorder()
-vad = VAD()
 
 buffer = []
-silent_time = 0.0
+silent_chunks = 0
+SILENCE_CHUNKS_NEEDED = int(SILENCE_THRESHOLD_TIME / recorder.chunk_duration)
 
-CHUNK_DURATION = 0.03
-SILENCE_THRESHOLD_TIME = 2
-MIN_AUDIO_TIME = 0.5
+print("Listening...")
 
 for chunk in recorder.stream_audio():
-
-    is_speech = vad.is_speech(chunk)
+    energy = np.sqrt(np.mean(chunk**2))
+    is_speech = energy > ENERGY_THRESHOLD
 
     if is_speech:
         buffer.append(chunk)
-        silent_time = 0.0
+        silent_chunks = 0
 
-    else:
-        silent_time += CHUNK_DURATION
+    elif buffer:
+        silent_chunks += 1
 
-        # erst verarbeiten wenn genug Sprache gesammelt
-        if silent_time >= SILENCE_THRESHOLD_TIME:
+        if silent_chunks >= SILENCE_CHUNKS_NEEDED:
+            audio = np.concatenate(buffer)
 
-            if len(buffer) > 0:
+            if len(audio) / recorder.fs >= MIN_AUDIO_TIME:
+                text = stt.transcribe_audio(audio)
 
-                audio = np.concatenate(buffer)
+                if text.strip():
+                    print(f"\nYOU: {text}")
+                    response = llm.ask(text)
+                    print()
 
-                # nur verarbeiten wenn genug Länge
-                if len(audio) / recorder.fs >= MIN_AUDIO_TIME:
-                    text = stt.transcribe_audio(audio)
-                    print("YOU:", text)
-
-                    response = llm.ask_stream(text)
-
-                buffer.clear()
-                silent_time = 0.0
+            buffer.clear()
+            silent_chunks = 0

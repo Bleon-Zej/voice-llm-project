@@ -2,17 +2,28 @@ import sounddevice as sd
 import numpy as np
 from scipy.io.wavfile import write
 import queue
+from typing import Generator
+from numpy.typing import NDArray
+from utils.config import SAMPLE_RATE, CHUNK_DURATION
 
 
 class Recorder:
 
-    def __init__(self, fs=16000, chunk_duration=0.03):
-        self.fs = fs
-        self.chunk_duration = chunk_duration
-        self.blocksize = int(fs * chunk_duration)
-        self.audio_queue = queue.Queue()
+    def __init__(
+        self, fs: int = SAMPLE_RATE, chunk_duration: float = CHUNK_DURATION
+    ) -> None:
+        self.fs: int = fs
+        self.chunk_duration: float = chunk_duration
+        self.blocksize: int = int(fs * chunk_duration)
+        self.audio_queue: queue.Queue[NDArray[np.float32]] = queue.Queue()
 
-    def callback(self, indata, frames, time, status):
+    def callback(
+        self,
+        indata: NDArray[np.float32],
+        frames: int,
+        time: sd.CallbackFlags,
+        status: sd.CallbackFlags,
+    ) -> None:
         chunk = indata.flatten()
 
         try:
@@ -20,7 +31,7 @@ class Recorder:
         except queue.Full:
             pass
 
-    def stream_audio(self):
+    def stream_audio(self) -> Generator[NDArray[np.float32], None, None]:
         with sd.InputStream(
             samplerate=self.fs,
             channels=1,
