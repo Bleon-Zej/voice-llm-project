@@ -1,19 +1,10 @@
 # Audio & Recording
 sounddevice==0.5.5
-scipy==1.13.1
 numpy==2.0.2
-av==15.1.0
+scipy==1.13.1
 
-# VAD / Speech-to-Text / LLM
+# Speech-to-Text
 faster-whisper==1.2.1
-ctranslate2==4.7.1
-huggingface_hub==1.8.0
-torch==2.8.0
-onnxruntime==1.19.2
 
-# Utilities / CLI / Logging
-rich==14.3.3
-coloredlogs==15.0.1
-click==8.1.8
-typer==0.23.2
-filelock==3.19.1
+# LLM Client
+ollama==0.2.1
