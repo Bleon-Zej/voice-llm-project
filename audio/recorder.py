@@ -1,20 +1,20 @@
+# audio/recorder.py
+
 import sounddevice as sd
 import numpy as np
 from scipy.io.wavfile import write
 import queue
 from typing import Generator
 from numpy.typing import NDArray
-from utils.config import SAMPLE_RATE, CHUNK_DURATION
+from utils.config import Config
 
 
 class Recorder:
 
-    def __init__(
-        self, fs: int = SAMPLE_RATE, chunk_duration: float = CHUNK_DURATION
-    ) -> None:
-        self.fs: int = fs
-        self.chunk_duration: float = chunk_duration
-        self.blocksize: int = int(fs * chunk_duration)
+    def __init__(self, config: Config) -> None:
+        self.fs: int = config.SAMPLE_RATE
+        self.chunk_duration: float = config.CHUNK_DURATION
+        self.blocksize: int = int(self.fs * self.chunk_duration)
         self.audio_queue: queue.Queue[NDArray[np.float32]] = queue.Queue()
 
     def callback(

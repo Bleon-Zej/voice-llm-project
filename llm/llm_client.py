@@ -1,20 +1,19 @@
 import ollama
-from utils.config import MODEL_NAME
+from utils.config import Config
+from typing import Any
 
 
 class LLMClient:
 
-    def __init__(self, model_name: str = MODEL_NAME, messages=None) -> None:
-        self.model_name: str = model_name
-        self.messages = messages if messages is not None else []
+    def __init__(self, config: Config) -> None:
+        self.config = config
 
-    def ask(self, prompt: str) -> str:
+    def generate(self, messages: list[dict[str, Any]]) -> str:
         full_response = ""
         try:
-            self.messages.append({"role": "user", "content": prompt})
             stream = ollama.chat(
-                model=self.model_name,
-                messages=self.messages,
+                model=self.config.MODEL_NAME,
+                messages=messages,
                 stream=True,
             )
             for chunk in stream:
@@ -22,9 +21,7 @@ class LLMClient:
                 print(token, end="", flush=True)
                 full_response += token
         except Exception as e:
-            print(f"Fehler: {e}")
+            print(f"Fehler bei LLM-Anfrage: {e}")
             full_response = f"Fehler: {e}"
 
-        assistant_msg = {"role": "assistant", "content": full_response}
-        self.messages.append(assistant_msg)
         return full_response
