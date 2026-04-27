@@ -12,6 +12,9 @@ env/
 *.mp3
 *.flac
 
+# Data
+.data/
+
 # Logs
 *.log
 

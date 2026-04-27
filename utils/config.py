@@ -8,17 +8,22 @@ from dataclasses import dataclass
 class Config:
     # LLM
     MODEL_NAME: str = "llama3"
+    # MODEL_NAME: str = "gemma4:e2b"
 
     # STT
     WHISPER_MODEL_SIZE: str = "small"
     WHISPER_LANGUAGE: str = "de"
+    WHISPER_BEAM_SIZE: int = 5
+    WHISPER_VAD_MIN_SILENCE_MS: int = 300
 
     # Memory
-    MAX_MESSAGES: int = 10
+    MAX_MESSAGES: int = 20
+    MESSAGES_TO_SUMMARIZE: int = 10
     MEMORY_FILE_PATH: str = "data/chat_history.json"
 
     # Recorder
     SAMPLE_RATE: int = 16000
+    CHUNK_DURATION: float = 0.03
 
     # Main / Buffer-Management
     SILENCE_THRESHOLD_TIME: float = 2.0
