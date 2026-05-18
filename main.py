@@ -6,6 +6,7 @@ from audio.recorder import Recorder
 from speech.speech_to_text import STT
 from memory.memory_manager import MemoryManager
 from utils.config import Config
+from speech.text_to_speech import TTS
 
 # Config erstellen
 config = Config()
@@ -15,6 +16,7 @@ llm = LLMClient(config=config)
 stt = STT(config=config)
 recorder = Recorder(config=config)
 memory = MemoryManager(config=config)
+tts = TTS(config=config)
 
 # Buffer-Management
 buffer = []
@@ -84,10 +86,9 @@ for chunk in recorder.stream_audio():
                     # 6. Memory speichern (Persistenz)
                     memory.save()
 
+                    tts.speak(response)
+
                     print()
 
             buffer.clear()
             silent_chunks = 0
-
-
-# TODO: .md file nutzen für system prompts und persönlichkeit

@@ -13,7 +13,7 @@ env/
 *.flac
 
 # Data
-data/chat_history.json
+data/
 
 # Logs
 *.log

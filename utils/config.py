@@ -25,6 +25,10 @@ class Config:
     SAMPLE_RATE: int = 16000
     CHUNK_DURATION: float = 0.03
 
+    # Models
+    KOKORO_MODEL_PATH: str = "data/models/model.onnx"
+    KOKORO_VOICES_PATH: str = "data/models/voices.bin"
+
     # Main / Buffer-Management
     SILENCE_THRESHOLD_TIME: float = 2.0
     MIN_AUDIO_TIME: float = 0.5
