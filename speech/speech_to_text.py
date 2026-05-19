@@ -10,7 +10,9 @@ class STT:
 
     def __init__(self, config: Config) -> None:
         self.config = config
-        self.model = WhisperModel(config.WHISPER_MODEL_SIZE, compute_type="int8")
+        self.model = WhisperModel(
+            config.WHISPER_MODEL_SIZE, compute_type=config.WHISPER_COMPUTE_TYPE
+        )
 
     def transcribe_audio(self, audio_array: NDArray[np.float32]) -> str:
         print("\nTranscribing...")

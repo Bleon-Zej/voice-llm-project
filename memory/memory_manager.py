@@ -35,7 +35,7 @@ class MemoryManager:
 
     def get_data_for_summarization(self) -> str:
         # Nur die ältesten Nachrichten nehmen
-        messages_to_summarize = self.messages[: Config.MESSAGES_TO_SUMMARIZE]
+        messages_to_summarize = self.messages[: self.config.MESSAGES_TO_SUMMARIZE]
         text = "\n".join(f"{msg.role}: {msg.content}" for msg in messages_to_summarize)
         return f"Alte Zusammenfassung: {self.summary}\n\nNeue Nachrichten:\n{text}"
 

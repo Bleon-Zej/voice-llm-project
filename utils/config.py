@@ -15,6 +15,12 @@ class Config:
     WHISPER_LANGUAGE: str = "de"
     WHISPER_BEAM_SIZE: int = 5
     WHISPER_VAD_MIN_SILENCE_MS: int = 300
+    WHISPER_COMPUTE_TYPE: str = "int8"
+
+    # TTS
+    TTS_VOICE: str = "am_onyx"
+    TTS_SPEED: float = 1.3
+    TTS_LANG: str = "de"
 
     # Memory
     MAX_MESSAGES: int = 20

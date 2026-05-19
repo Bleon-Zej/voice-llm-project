@@ -1,5 +1,5 @@
 from utils.config import Config
-from kokoro_onnx import Kokoro  # TODO: ZU requirements hinzufügen
+from kokoro_onnx import Kokoro
 import sounddevice as sd
 
 
@@ -13,7 +13,10 @@ class TTS:
 
     def speak(self, text: str) -> None:
         samples, sample_rate = self.kokoro.create(
-            text=text, voice="am_onyx", speed=1.3, lang="de"
+            text=text,
+            voice=self.config.TTS_VOICE,
+            speed=self.config.TTS_SPEED,
+            lang=self.config.TTS_LANG,
         )
         sd.play(data=samples, samplerate=sample_rate)
         sd.wait()
