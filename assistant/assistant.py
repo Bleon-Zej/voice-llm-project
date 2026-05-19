@@ -1,6 +1,9 @@
+# assistant.py
+
 import numpy as np
 from llm.llm_client import LLMClient
 from audio.recorder import Recorder
+from audio.audio_buffer import AudioBuffer
 from speech.speech_to_text import STT
 from memory.memory_manager import MemoryManager
 from utils.config import Config
@@ -12,41 +15,25 @@ class Assistant:
     def __init__(self) -> None:
         self.config = Config()
         self.recorder = Recorder(config=self.config)
+        self.buffer = AudioBuffer(config=self.config)
         self.stt = STT(config=self.config)
         self.llm = LLMClient(config=self.config)
         self.memory = MemoryManager(config=self.config)
         self.tts = TTS(config=self.config)
 
     def run(self) -> None:
-        buffer = []
-        silent_chunks = 0
-        SILENCE_CHUNKS_NEEDED = int(
-            self.config.SILENCE_THRESHOLD_TIME / self.config.CHUNK_DURATION
-        )
 
         print("Listening...")
 
         for chunk in self.recorder.stream_audio():
-            energy = np.sqrt(np.mean(chunk**2))
-            is_speech = energy > self.config.ENERGY_THRESHOLD
+            audio = self.buffer.process(chunk=chunk)
 
-            if is_speech:
-                buffer.append(chunk)
-                silent_chunks = 0
-
-            elif buffer:
-                silent_chunks += 1
-
-                if silent_chunks >= SILENCE_CHUNKS_NEEDED:
-                    audio = np.concatenate(buffer)
-                    self._process_utterance(audio)
-
-                    buffer.clear()
-                    silent_chunks = 0
+            if audio is not None:
+                self._process_utterance(audio=audio)
 
     def _process_utterance(self, audio: np.ndarray) -> None:
         if len(audio) / self.recorder.fs >= self.config.MIN_AUDIO_TIME:
-            text = self.stt.transcribe_audio(audio)
+            text = self.stt.transcribe_audio(audio_array=audio)
 
             if text.strip():
                 print(f"\nYOU: {text}")

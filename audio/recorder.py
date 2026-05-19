@@ -2,7 +2,6 @@
 
 import sounddevice as sd
 import numpy as np
-from scipy.io.wavfile import write
 import queue
 from typing import Generator
 from numpy.typing import NDArray
