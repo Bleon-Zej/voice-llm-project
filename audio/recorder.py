@@ -1,9 +1,9 @@
 # audio/recorder.py
-
+import asyncio
 import sounddevice as sd
 import numpy as np
 import queue
-from typing import Generator
+from typing import AsyncGenerator
 from numpy.typing import NDArray
 from utils.config import Config
 
@@ -30,7 +30,7 @@ class Recorder:
         except queue.Full:
             pass
 
-    def stream_audio(self) -> Generator[NDArray[np.float32], None, None]:
+    async def stream_audio(self) -> AsyncGenerator[NDArray[np.float32], None]:
         with sd.InputStream(
             samplerate=self.fs,
             channels=1,
@@ -39,4 +39,4 @@ class Recorder:
             callback=self.callback,
         ):
             while True:
-                yield self.audio_queue.get()
+                yield await asyncio.to_thread(self.audio_queue.get)
