@@ -1,7 +1,8 @@
 # llm/llm_client.py
-
-import ollama
+import asyncio
+from ollama import AsyncClient
 from utils.config import Config
+from utils.text_utils import is_sentence
 from typing import Any
 
 
@@ -10,21 +11,30 @@ class LLMClient:
     def __init__(self, config: Config) -> None:
         self.config = config
 
-    def generate(self, messages: list[dict[str, Any]], silent: bool = False) -> str:
-        full_response = ""
+    async def generate(
+        self, messages: list[dict[str, Any]], queue: asyncio.Queue, silent: bool = False
+    ) -> None:
+        buffer = ""
         try:
-            stream = ollama.chat(
+            stream = await AsyncClient().chat(
                 model=self.config.MODEL_NAME,
                 messages=messages,
                 stream=True,
             )
-            for chunk in stream:
+            async for chunk in stream:
                 token = chunk["message"]["content"]
                 if not silent:  # Nur ausgeben wenn nicht silent
                     print(token, end="", flush=True)
-                full_response += token
+                buffer += token
+                if is_sentence(buffer=buffer, next_token=token):
+                    await queue.put(buffer.strip())
+                    buffer = ""  # Buffer leeren
+
+            if buffer.strip():
+                await queue.put(buffer.strip())
+
+            await queue.put(None)  # Ende Signal
         except Exception as e:
             print(f"Fehler bei LLM-Anfrage: {e}")
-            full_response = f"Fehler: {e}"
-
-        return full_response
+            await queue.put(f"Fehler: {e}")
+            await queue.put(None)
