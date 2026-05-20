@@ -77,6 +77,7 @@ All settings in `utils/config.py`:
 - [x] Local text-to-speech
 - [x] Persistent memory with summarization
 - [ ] Async pipeline (overlap LLM + TTS)
+- [ ] RAG (Retrieval-Augmented Generation)
 - [ ] Wake-word detection
 - [ ] Voice cloning with F5-TTS
 
