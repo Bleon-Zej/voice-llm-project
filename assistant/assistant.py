@@ -1,6 +1,7 @@
 # assistant.py
 
 import numpy as np
+import asyncio
 from llm.llm_client import LLMClient
 from audio.recorder import Recorder
 from audio.audio_buffer import AudioBuffer
@@ -14,6 +15,7 @@ class Assistant:
 
     def __init__(self) -> None:
         self.config = Config()
+        self.queue = asyncio.Queue()
         self.recorder = Recorder(config=self.config)
         self.buffer = AudioBuffer(config=self.config)
         self.stt = STT(config=self.config)
@@ -21,19 +23,19 @@ class Assistant:
         self.memory = MemoryManager(config=self.config)
         self.tts = TTS(config=self.config)
 
-    def run(self) -> None:
+    async def run(self) -> None:
 
         print("Listening...")
 
-        for chunk in self.recorder.stream_audio():
-            audio = self.buffer.process(chunk=chunk)
+        async for chunk in self.recorder.stream_audio():
+            audio = self.buffer.process(chunk)
 
             if audio is not None:
-                self._process_utterance(audio=audio)
+                await self._process_utterance(audio=audio)
 
-    def _process_utterance(self, audio: np.ndarray) -> None:
+    async def _process_utterance(self, audio: np.ndarray) -> None:
         if len(audio) / self.recorder.fs >= self.config.MIN_AUDIO_TIME:
-            text = self.stt.transcribe_audio(audio_array=audio)
+            text = await asyncio.to_thread(self.stt.transcribe_audio, audio)
 
             if text.strip():
                 print(f"\nYOU: {text}")
@@ -54,8 +56,8 @@ class Assistant:
                         },
                         {"role": "user", "content": summary_data},
                     ]
-                    new_summary = self.llm.generate(
-                        messages=summary_messages, silent=True
+                    new_summary = await self.llm.generate(
+                        messages=summary_messages, queue=self.queue, silent=True
                     )
 
                     self.memory.apply_summarization(
@@ -64,8 +66,11 @@ class Assistant:
                     )
 
                 context = self.memory.get_context_for_llm()
-                response = self.llm.generate(messages=context)
+                task = await asyncio.gather(
+                    self.llm.generate(messages=context, queue=self.queue),
+                    self.tts.consume(self.queue),
+                )
+                response = task[0]
                 self.memory.add_message(role="assistant", content=response)
                 self.memory.save()
-                self.tts.speak(response)
                 print()

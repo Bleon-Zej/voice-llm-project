@@ -13,7 +13,7 @@ class LLMClient:
 
     async def generate(
         self, messages: list[dict[str, Any]], queue: asyncio.Queue, silent: bool = False
-    ) -> None:
+    ) -> str:
         buffer = ""
         try:
             stream = await AsyncClient().chat(
@@ -23,18 +23,21 @@ class LLMClient:
             )
             async for chunk in stream:
                 token = chunk["message"]["content"]
+                buffer += token
                 if not silent:  # Nur ausgeben wenn nicht silent
                     print(token, end="", flush=True)
-                buffer += token
-                if is_sentence(buffer=buffer, next_token=token):
+                    if is_sentence(buffer=buffer, next_token=token):
+                        await queue.put(buffer.strip())
+                        buffer = ""  # Buffer leeren
+
+            if not silent:
+                if buffer.strip():
                     await queue.put(buffer.strip())
-                    buffer = ""  # Buffer leeren
+                await queue.put(None)
 
-            if buffer.strip():
-                await queue.put(buffer.strip())
-
-            await queue.put(None)  # Ende Signal
+            return buffer
         except Exception as e:
             print(f"Fehler bei LLM-Anfrage: {e}")
             await queue.put(f"Fehler: {e}")
             await queue.put(None)
+            return buffer

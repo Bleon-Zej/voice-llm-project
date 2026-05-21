@@ -1,5 +1,6 @@
 from utils.config import Config
 from kokoro_onnx import Kokoro
+import asyncio
 import sounddevice as sd
 
 
@@ -20,3 +21,12 @@ class TTS:
         )
         sd.play(data=samples, samplerate=sample_rate)
         sd.wait()
+
+    async def consume(self, queue: asyncio.Queue) -> None:
+        while True:
+            text = await queue.get()
+
+            if text is None:
+                break
+
+            await asyncio.to_thread(self.speak, text)
