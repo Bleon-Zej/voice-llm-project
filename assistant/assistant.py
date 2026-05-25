@@ -42,6 +42,16 @@ class Assistant:
 
                 self.memory.add_message(role="user", content=text)
 
+                context = self.memory.get_context_for_llm()
+                task = await asyncio.gather(
+                    self.llm.generate(messages=context, queue=self.queue),
+                    self.tts.consume(self.queue),
+                )
+                response = task[0]
+
+                self.memory.add_message(role="assistant", content=response)
+                self.memory.save()
+
                 if self.memory.needs_optimization():
                     print("\n[Optimiere Memory...]")
                     summary_data = self.memory.get_data_for_summarization()
@@ -56,21 +66,20 @@ class Assistant:
                         },
                         {"role": "user", "content": summary_data},
                     ]
-                    new_summary = await self.llm.generate(
-                        messages=summary_messages, queue=self.queue, silent=True
-                    )
 
-                    self.memory.apply_summarization(
-                        new_summary=new_summary,
-                        count_to_remove=self.config.MESSAGES_TO_SUMMARIZE,
+                    await self._summarize(
+                        summary_massages=summary_messages, silent=True
                     )
-
-                context = self.memory.get_context_for_llm()
-                task = await asyncio.gather(
-                    self.llm.generate(messages=context, queue=self.queue),
-                    self.tts.consume(self.queue),
-                )
-                response = task[0]
-                self.memory.add_message(role="assistant", content=response)
-                self.memory.save()
                 print()
+
+    async def _summarize(self, summary_massages: str, silent: bool) -> None:
+        try:
+            new_summary = await self.llm.generate(
+                messages=summary_massages, silent=silent
+            )
+            self.memory.apply_summarization(
+                new_summary=new_summary,
+                count_to_remove=self.config.MESSAGES_TO_SUMMARIZE,
+            )
+        except Exception as e:
+            print(f"Summarization Fehler: {e}")

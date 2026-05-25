@@ -12,12 +12,20 @@ class LLMClient:
         self.config = config
 
     async def generate(
-        self, messages: list[dict[str, Any]], queue: asyncio.Queue, silent: bool = False
+        self,
+        messages: list[dict[str, Any]],
+        queue: asyncio.Queue | None = None,
+        silent: bool = False,
     ) -> str:
         buffer = ""
+        if silent:
+            model = self.config.MODEL_NAME_SUMMARY
+        else:
+            model = self.config.MODEL_NAME
+
         try:
             stream = await AsyncClient().chat(
-                model=self.config.MODEL_NAME,
+                model=model,
                 messages=messages,
                 stream=True,
             )
