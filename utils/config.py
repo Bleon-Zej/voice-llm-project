@@ -7,8 +7,8 @@ from dataclasses import dataclass
 )  # frozen=True macht die Config read-only (Schutz vor Änderungen)
 class Config:
     # LLM
-    MODEL_NAME: str = "llama3"
-    MODEL_NAME_SUMMARY: str = "gemma:2b"
+    MODEL_NAME: str = "qwen3:0.6b"
+    MODEL_NAME_SUMMARY: str = "qwen3:0.6b"
 
     # STT
     WHISPER_MODEL_SIZE: str = "small"

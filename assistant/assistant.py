@@ -41,14 +41,15 @@ class Assistant:
                 print(f"\nYOU: {text}")
 
                 self.memory.add_message(role="user", content=text)
-
+                self.recorder.pause()
                 context = self.memory.get_context_for_llm()
                 task = await asyncio.gather(
                     self.llm.generate(messages=context, queue=self.queue),
                     self.tts.consume(self.queue),
                 )
                 response = task[0]
-
+                await asyncio.sleep(0.3)  # kurzer Drain (wichtig!)
+                self.recorder.resume()
                 self.memory.add_message(role="assistant", content=response)
                 self.memory.save()
 
